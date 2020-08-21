@@ -3,9 +3,10 @@ const mongoose = require('mongoose');
 const Food = require('./models/Food');
 
 const app = express();
-
+// code-review - Should take it from process.env
 mongoose.connect('mongodb+srv://kaushikmdeo:kaushik123@frontm.zltir.mongodb.net/frontm?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true});
 const db = mongoose.connection;
+// code-review - Have a separate helper to populate data
 try {
     db.once('open', async () => {
         if (await Food.countDocuments().exec() > 0) return
@@ -27,13 +28,15 @@ app.use((req, res, next) => {
     req.queryStartTime = process.hrtime();
     next();
 });
-
+// code-review - Have a separate file for all these middleware
 const pagination = () => async (req, res, next) => {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     const results = {}
+    // code-review - you cannot have specific mongo query here
+    // code-review - this should be strictly for pagination and can be used for other apis too
     const foodsLength = await Food.countDocuments().exec();
     if (endIndex < foodsLength) {
         results.next = {
@@ -58,12 +61,14 @@ const pagination = () => async (req, res, next) => {
 
 const searchResults = () => (req, res, next) => {
     const searchQuery = req.query.search.toString();
+    // code-review - No console.log
     console.log('searchquery', searchQuery);
     
     next();
 }
 
 const sorting = () => (req, res, next) => {
+    // code-review - Not specific to food here
     const paginationResult = res.paginatedFoods;
     parseInt(req.query.sort) === 1 ? 
     paginationResult.foods.sort((a, b) => (a.itemName.toLowerCase() > b.itemName.toLowerCase()) ? 1 : -1) :
@@ -82,6 +87,7 @@ app.get('/', (req, res) => {
     res.send('Welcome to Flight Food Ordering');
 })
 
+// code-review - all these are query variables and not middlewares. imagine you have many apis like `/food` how do you plan to reuse these
 app.get('/foods', searchResults(), pagination(), sorting(), logQueryTime(), (req, res) => {
     res.json(res.sortedFoods);
 });
