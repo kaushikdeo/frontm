@@ -1,2 +1,2 @@
 # frontm
-wtf
+No info here on how to install and run
