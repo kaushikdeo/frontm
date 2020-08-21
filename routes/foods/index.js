@@ -1,9 +1,13 @@
+// code-review - why not import - have you not using babel
 const router = require('express').Router();
 const Food = require('../../models/Food');
 const mongoose = require('mongoose');
 const validator = require('validator');
 
+// code-review - which route is this?
 router.get('/', async (req, res, next) => {
+    // code-review - use Number instead of parseInt
+    // code-review - have a function which does these input validations
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const sortBy = req.query.sortBy ? req.query.sortBy.toString() : 'itemName';
@@ -37,8 +41,10 @@ router.get('/', async (req, res, next) => {
         }
     } catch (error) {
         console.log('Some Error Occured', error);
+        // code-review - cannot be 400 has to be 500
         return res.status(400).json({message: "Error occured while counting Entries"});
     }
+    // code-review - async/await pls
     Food.find(filterQuery).limit(limit).skip(startIndex).sort(sortQuery)
         .then(allFoods => {
             const totalTime = process.hrtime(req.queryStartTime);
@@ -51,12 +57,13 @@ router.get('/', async (req, res, next) => {
             res.status(500).json({message: "error occured while fetching all foods"});
         })
 })
-
+// code-review - which route is this
 router.post('/', async (req, res, next) => {
     if (!req.body) {
         return res.status(400).json({messgae: 'Invalid input fields'});
     }
     // validation
+    // code-review - separete function
     const itemName = validator.escape(req.body.itemName);
     const foodType = validator.escape(req.body.foodType);
     const cusineType = validator.escape(req.body.cusineType);
